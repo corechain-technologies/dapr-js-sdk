@@ -2,7 +2,11 @@
   "name": "@dapr/dapr",
   "version": "3.3.1",
   "description": "The official Dapr (https://dapr.io) SDK for Node.js",
-  "types": "./build/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./*.js": "./dist/*.js"
+  },
+  "types": "./dist/index.d.ts",
   "scripts": {
     "test": "npm run test:unit:all && npm run test:e2e:all",
     "test:load": "jest --runInBand --detectOpenHandles",
@@ -37,10 +41,13 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prebuild": "./scripts/prebuild.sh",
     "build-ci": "npm run prebuild && ./scripts/build.sh",
-    "build": "npm install && npm run lint && npm run pretty && ./scripts/build.sh",
+    "build": "tsc && cp -R ./src/proto ./dist",
     "start:dev": "npm run build && nodemon --ext \".ts,.js\" --watch \"./src\" --exec \"npm run build\"",
     "pretty": "prettier --list-different \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "pretty-fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "pretty-fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+
+    "_phase:build": "npm run build",
+    "_phase:test": "npm run test"
   },
   "keywords": [],
   "author": "Xavier Geerinck",
