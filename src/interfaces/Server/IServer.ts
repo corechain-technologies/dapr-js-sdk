@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-export default interface IServer {
+export default interface IServer<TInterface, TImplementation> {
   getServerAddress(): string;
-  getServer(): any; // this is dependent on the implementation
-  getServerImpl(): any; // this is dependent on the implementation
+  getServer(): TInterface; // this is dependent on the implementation
+  getServerImpl(): TImplementation; // this is dependent on the implementation
   start(host: string, port: string): Promise<void>;
   stop(): Promise<void>;
 }

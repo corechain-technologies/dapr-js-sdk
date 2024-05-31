@@ -15,5 +15,5 @@ import { DaprInvokerCallbackFunction } from "../../types/DaprInvokerCallback.typ
 import { InvokerListenOptionsType } from "../../types/InvokerListenOptions.type";
 
 export default interface IServerInvoker {
-  listen(methodName: string, cb: DaprInvokerCallbackFunction, options?: InvokerListenOptionsType): Promise<any>;
+  listen(methodName: string, cb: DaprInvokerCallbackFunction, options?: InvokerListenOptionsType): Promise<void>;
 }

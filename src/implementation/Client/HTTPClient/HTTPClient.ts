@@ -26,7 +26,7 @@ import * as SerializerUtil from "../../../utils/Serializer.util";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { HttpEndpoint } from "../../../network/HttpEndpoint";
 
-export default class HTTPClient implements IClient {
+export default class HTTPClient implements IClient<typeof fetch> {
   readonly options: DaprClientOptions;
 
   private isInitialized: boolean;

@@ -24,7 +24,7 @@ import { DaprServerOptions } from "../../../types/DaprServerOptions";
 export type IServerImplType = HTTPServerImpl;
 export type IServerType = express.Express;
 
-export default class HTTPServer implements IServer {
+export default class HTTPServer implements IServer<IServerType, IServerImplType> {
   server: IServerType;
   serverInstance: undefined | http.Server; // defined after start()
   serverTerminator: undefined | ReturnType<typeof createHttpTerminator>; // defined after start()

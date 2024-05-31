@@ -22,7 +22,7 @@ import { DaprServerOptions } from "../../../types/DaprServerOptions";
 export type IServerType = grpc.Server;
 export type IServerImplType = GRPCServerImpl;
 
-export default class GRPCServer implements IServer {
+export default class GRPCServer implements IServer<IServerType, IServerImplType> {
   isInitialized: boolean;
   serverHost: string;
   serverPort: string;

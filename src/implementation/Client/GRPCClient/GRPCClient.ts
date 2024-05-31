@@ -23,7 +23,7 @@ import { SDK_VERSION } from "../../../version";
 import communicationProtocolEnum from "../../../enum/CommunicationProtocol.enum";
 import { GrpcEndpoint } from "../../../network/GrpcEndpoint";
 
-export default class GRPCClient implements IClient {
+export default class GRPCClient implements IClient<GrpcDaprClient> {
   readonly options: DaprClientOptions;
 
   private isInitialized: boolean;

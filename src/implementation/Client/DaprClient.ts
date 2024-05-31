@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { DaprClient as GrpcDaprClient } from "../../proto/dapr/proto/runtime/v1/dapr_grpc_pb";
+
 import IClient from "../../interfaces/Client/IClient";
 import IClientActorBuilder from "../../interfaces/Client/IClientActorBuilder";
 import IClientBinding from "../../interfaces/Client/IClientBinding";
@@ -65,10 +67,11 @@ import { Logger } from "../../logger/Logger";
 import GRPCClientProxy from "./GRPCClient/proxy";
 import * as NodeJSUtils from "../../utils/NodeJS.util";
 import { getClientOptions } from "../../utils/Client.util";
+import fetch from "node-fetch";
 
 export default class DaprClient {
   readonly options: DaprClientOptions;
-  readonly daprClient: IClient;
+  readonly daprClient: IClient<GrpcDaprClient | typeof fetch>;
   readonly actor: IClientActorBuilder;
   readonly binding: IClientBinding;
   readonly configuration: IClientConfiguration;
@@ -156,7 +159,7 @@ export default class DaprClient {
     };
   }
 
-  static create(client: IClient): DaprClient {
+  static create(client: IClient<GrpcDaprClient | typeof fetch>): DaprClient {
     return new DaprClient(client.options);
   }
 

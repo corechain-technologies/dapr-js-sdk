@@ -27,7 +27,7 @@ export default class DaprBinding implements IServerBinding {
   }
 
   // Receive an input from an external system
-  async receive(bindingName: string, cb: TypeDaprBindingCallback): Promise<any> {
+  async receive(bindingName: string, cb: TypeDaprBindingCallback): Promise<void> {
     this.logger.info(`Registering GRPC onBindingInput Handler: Binding = ${bindingName}`);
     this.server.getServerImpl().registerInputBindingHandler(bindingName, cb);
   }

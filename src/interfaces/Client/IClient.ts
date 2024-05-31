@@ -13,10 +13,10 @@ limitations under the License.
 
 import { DaprClientOptions } from "../../types/DaprClientOptions";
 
-export default interface IClient {
+export default interface IClient<A> {
   options: DaprClientOptions;
 
-  getClient(requiresInitialization?: boolean): Promise<any>;
+  getClient(requiresInitialization?: boolean): Promise<A>;
   setIsInitialized(isInitialized: boolean): void;
   getIsInitialized(): boolean;
   stop(): Promise<void>;
