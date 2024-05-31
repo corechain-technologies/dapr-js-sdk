@@ -15,11 +15,11 @@ import { HttpMethod } from "../../enum/HttpMethod.enum";
 import { InvokerOptions } from "../../types/InvokerOptions.type";
 
 export default interface IClientInvoker {
-  invoke(
+  invoke<I extends object>(
     appId: string,
     methodName: string,
     method: HttpMethod,
-    data?: object,
+    data?: I,
     options?: InvokerOptions,
-  ): Promise<object>;
+  ): Promise<unknown>;
 }

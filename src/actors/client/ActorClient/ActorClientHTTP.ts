@@ -27,13 +27,13 @@ export default class ActorClientHTTP implements IClientActor {
     this.client = client;
   }
 
-  async invoke(actorType: string, actorId: ActorId, methodName: string, body?: any): Promise<object> {
+  async invoke(actorType: string, actorId: ActorId, methodName: string, body?: string | Uint8Array): Promise<unknown> {
     const result = await this.client.execute(`/actors/${actorType}/${actorId.getURLSafeId()}/method/${methodName}`, {
       method: "POST", // we always use POST calls for Invoking (ref: https://github.com/dapr/js-sdk/pull/137#discussion_r772636068)
       body,
     });
 
-    return result as object;
+    return result as unknown;
   }
 
   async stateTransaction(actorType: string, actorId: ActorId, operations: OperationType[]): Promise<void> {

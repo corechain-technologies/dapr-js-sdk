@@ -11,6 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import type * as jspb from "google-protobuf";
+
 export default interface IClientBinding {
-  send(bindingName: string, operation: string, data: any, metadata?: object): Promise<object>;
+  send<I>(
+    bindingName: string,
+    operation: string,
+    data: I,
+    metadata?: object,
+  ): Promise<{ data: string | Uint8Array; metadata: jspb.Map<string, string>; operation: string }>;
 }

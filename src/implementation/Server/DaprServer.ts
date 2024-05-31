@@ -34,11 +34,17 @@ import { DaprServerOptions } from "../../types/DaprServerOptions";
 import DaprClient from "../Client/DaprClient";
 import { getClientOptions } from "../../utils/Client.util";
 
+import * as grpc from "@grpc/grpc-js";
+import type GRPCServerImpl from "./GRPCServer/GRPCServerImpl";
+
+import type express from "express";
+import type HTTPServerImpl from "./HTTPServer/HTTPServerImpl";
+
 export default class DaprServer {
   // App details
   private readonly serverOptions: DaprServerOptions;
 
-  readonly daprServer: IServer;
+  readonly daprServer: IServer<grpc.Server, GRPCServerImpl> | IServer<express.Express, HTTPServerImpl>;
   readonly pubsub: IServerPubSub;
   readonly binding: IServerBinding;
   readonly invoker: IServerInvoker;
@@ -118,7 +124,7 @@ export default class DaprServer {
     await this.daprServer.stop();
   }
 
-  getDaprClient(): IServer {
-    return this.daprServer;
+  getDaprClient() {
+    return this.daprServer satisfies IServer<any, any>;
   }
 }

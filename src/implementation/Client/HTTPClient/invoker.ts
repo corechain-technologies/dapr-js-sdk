@@ -24,13 +24,13 @@ export default class HTTPClientInvoker implements IClientInvoker {
     this.client = client;
   }
 
-  async invoke(
+  async invoke<I extends object>(
     appId: string,
     methodName: string,
     method: HttpMethod = HttpMethod.GET,
-    data?: any,
+    data?: I,
     options: InvokerOptions = {},
-  ): Promise<object> {
+  ): Promise<unknown> {
     const headers = options.headers ?? {};
 
     const fetchOptions = {
@@ -40,6 +40,6 @@ export default class HTTPClientInvoker implements IClientInvoker {
     };
 
     const result = await this.client.execute(`/invoke/${appId}/method/${methodName}`, fetchOptions);
-    return result as object;
+    return result as unknown;
   }
 }

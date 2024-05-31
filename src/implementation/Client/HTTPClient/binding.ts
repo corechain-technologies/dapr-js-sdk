@@ -14,6 +14,8 @@ limitations under the License.
 import HTTPClient from "./HTTPClient";
 import IClientBinding from "../../../interfaces/Client/IClientBinding";
 
+import type * as jspb from "google-protobuf";
+
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class HTTPClientBinding implements IClientBinding {
   client: HTTPClient;
@@ -23,7 +25,12 @@ export default class HTTPClientBinding implements IClientBinding {
   }
 
   // Send an event to an external system
-  async send(bindingName: string, operation: string, data: any, metadata: object = {}): Promise<object> {
+  async send<I>(
+    bindingName: string,
+    operation: string,
+    data: I,
+    metadata: object = {},
+  ): Promise<{ data: string | Uint8Array; metadata: jspb.Map<string, string>; operation: string }> {
     const result = await this.client.execute(`/bindings/${bindingName}`, {
       method: "POST",
       body: {
@@ -33,6 +40,6 @@ export default class HTTPClientBinding implements IClientBinding {
       },
     });
 
-    return result as object;
+    return result as { data: string | Uint8Array; metadata: jspb.Map<string, string>; operation: string };
   }
 }

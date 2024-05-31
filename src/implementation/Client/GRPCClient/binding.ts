@@ -18,6 +18,8 @@ import * as SerializerUtil from "../../../utils/Serializer.util";
 import { addMetadataToMap } from "../../../utils/Client.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
 
+import type * as jspb from "google-protobuf";
+
 // https://docs.dapr.io/reference/api/bindings_api/
 export default class GRPCClientBinding implements IClientBinding {
   client: GRPCClient;
@@ -28,7 +30,12 @@ export default class GRPCClientBinding implements IClientBinding {
 
   // Send an event to an external system
   // @todo: should return a specific typed Promise<TypeBindingResponse> instead of Promise<object>
-  async send(bindingName: string, operation: string, data: any, metadata: KeyValueType = {}): Promise<object> {
+  async send<I>(
+    bindingName: string,
+    operation: string,
+    data: I,
+    metadata: KeyValueType = {},
+  ): Promise<{ data: string | Uint8Array; metadata: jspb.Map<string, string>; operation: string }> {
     const msgService = new InvokeBindingRequest();
     msgService.setName(bindingName);
     msgService.setOperation(operation);

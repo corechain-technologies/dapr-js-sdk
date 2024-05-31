@@ -32,13 +32,13 @@ export default class GRPCClientInvoker implements IClientInvoker {
 
   // @todo: should return a specific typed Promise<TypeInvokerInvokeResponse> instead of Promise<nothing>
 
-  async invoke(
+  async invoke<I>(
     appId: string,
     methodName: string,
     method: HttpMethod = HttpMethod.GET,
-    data: object = {},
+    data?: I,
     _options: InvokerOptions = {},
-  ): Promise<object> {
+  ): Promise<unknown> {
     // InvokeServiceRequest represents the request message for Service invocation.
     const msgInvokeService = new InvokeServiceRequest();
     msgInvokeService.setId(appId);
@@ -47,7 +47,7 @@ export default class GRPCClientInvoker implements IClientInvoker {
     httpExtension.setVerb(HttpVerbUtil.convertHttpVerbStringToNumber(method));
 
     const msgSerialized = new Any();
-    const { serializedData, contentType } = SerializerUtil.serializeGrpc(data);
+    const { serializedData, contentType } = SerializerUtil.serializeGrpc(data ?? {});
     msgSerialized.setValue(serializedData);
 
     const msgInvoke = new InvokeRequest();

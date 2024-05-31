@@ -42,14 +42,13 @@ export default class ActorClientGRPC implements IClientActor {
     this.client = client;
   }
 
-  async invoke(actorType: string, actorId: ActorId, methodName: string, body?: any): Promise<object> {
+  async invoke(actorType: string, actorId: ActorId, methodName: string, body?: string | Uint8Array): Promise<unknown> {
     const msgService = new InvokeActorRequest();
     msgService.setActorId(actorId.getId());
     msgService.setActorType(actorType);
     msgService.setMethod(methodName);
 
     if (body) {
-      // @todo: if body is any, do we have to figure out how to serialize in JS? (e.g. if object -> JSON.stringify?)
       msgService.setData(body);
     }
 

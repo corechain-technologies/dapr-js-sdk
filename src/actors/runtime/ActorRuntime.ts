@@ -52,7 +52,7 @@ export default class ActorRuntime {
     return ActorRuntime.instance;
   }
 
-  static getInstance(client: IClient): ActorRuntime {
+  static getInstance<A extends IClient<any>>(client: A): ActorRuntime {
     if (!ActorRuntime.instance) {
       const daprClient = DaprClient.create(client);
       ActorRuntime.instance = new ActorRuntime(daprClient);
