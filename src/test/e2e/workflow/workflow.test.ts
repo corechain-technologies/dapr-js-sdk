@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import DaprWorkflowClient from "../../../src/workflow/client/DaprWorkflowClient";
-import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
-import WorkflowRuntime from "../../../src/workflow/runtime/WorkflowRuntime";
-import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
-import { getFunctionName } from "../../../src/workflow/internal";
-import { WorkflowRuntimeStatus } from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
-import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
+import DaprWorkflowClient from "../../../../src/workflow/client/DaprWorkflowClient";
+import WorkflowContext from "../../../../src/workflow/runtime/WorkflowContext";
+import WorkflowRuntime from "../../../../src/workflow/runtime/WorkflowRuntime";
+import { TWorkflow } from "../../../../src/types/workflow/Workflow.type";
+import { getFunctionName } from "../../../../src/workflow/internal";
+import { WorkflowRuntimeStatus } from "../../../../src/workflow/runtime/WorkflowRuntimeStatus";
+import WorkflowActivityContext from "../../../../src/workflow/runtime/WorkflowActivityContext";
 import { Task } from "@microsoft/durabletask-js/task/task";
 
 const clientHost = "localhost";

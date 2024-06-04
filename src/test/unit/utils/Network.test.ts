@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { GrpcEndpoint } from "../../../src/network/GrpcEndpoint";
-import { HttpEndpoint } from "../../../src/network/HttpEndpoint";
+import { GrpcEndpoint } from "../../../../src/network/GrpcEndpoint";
+import { HttpEndpoint } from "../../../../src/network/HttpEndpoint";
 
 describe("Client.util", () => {
   describe("parse GRPC Endpoint", () => {

@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient } from "../../../src";
-import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
-import ActorId from "../../../src/actors/ActorId";
+import { DaprClient } from "../../../../src";
+import ActorRuntime from "../../../../src/actors/runtime/ActorRuntime";
+import ActorId from "../../../../src/actors/ActorId";
 import DemoActorCounterImpl from "../../actor/DemoActorCounterImpl";
 import DemoActorSayImpl from "../../actor/DemoActorSayImpl";
-import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
+import { ActorRuntimeOptions } from "../../../../src/types/actors/ActorRuntimeOptions";
 import { randomUUID } from "crypto";
 
 describe("ActorRuntime", () => {
@@ -24,7 +24,7 @@ describe("ActorRuntime", () => {
   let runtime: ActorRuntime;
 
   beforeAll(async () => {
-    jest.mock("../../../src/implementation/Client/DaprClient"); // converts DaprClient into a mock constructor
+    jest.mock("../../../implementation/Client/DaprClient"); // converts DaprClient into a mock constructor
     client = new DaprClient({ daprHost: "127.0.0.1", daprPort: "1000" });
   });
 

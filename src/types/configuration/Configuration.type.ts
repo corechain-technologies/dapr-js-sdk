@@ -13,6 +13,4 @@ limitations under the License.
 
 import { ConfigurationItem } from "./ConfigurationItem";
 
-export type ConfigurationType = {
-  [key: string]: ConfigurationItem;
-};
+export type ConfigurationType = Record<string, ConfigurationItem>;

@@ -11,51 +11,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ConfigurationItem } from "../../../src/proto/dapr/proto/common/v1/common_pb";
+import { ConfigurationItem } from "../../../../src/proto/dapr/proto/common/v1/common";
 import {
-  addMetadataToMap,
   createConfigurationType,
   getContentType,
   getBulkPublishEntries,
   getBulkPublishResponse,
   getClientOptions,
   createHTTPQueryParam,
-} from "../../../src/utils/Client.util";
-import { Map } from "google-protobuf";
-import { PubSubBulkPublishEntry } from "../../../src/types/pubsub/PubSubBulkPublishEntry.type";
-import { PubSubBulkPublishApiResponse } from "../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
-import { CommunicationProtocolEnum, DaprClientOptions, LogLevel } from "../../../src";
-import { DaprClient } from "../../../src";
-import { Settings } from "../../../src/utils/Settings.util";
+} from "../../../../src/utils/Client.util";
+import { PubSubBulkPublishEntry } from "../../../../src/types/pubsub/PubSubBulkPublishEntry.type";
+import { PubSubBulkPublishApiResponse } from "../../../../src/types/pubsub/PubSubBulkPublishApiResponse.type";
+import { CommunicationProtocolEnum, DaprClientOptions, LogLevel } from "../../../../src";
+import { DaprClient } from "../../../../src";
+import { Settings } from "../../../../src/utils/Settings.util";
 
 describe("Client.util", () => {
-  describe("addMetadataToMap", () => {
-    it("should add values to Map", () => {
-      const m = new Map<string, string>([]);
-      const metadata = {
-        key1: "value1",
-        key2: "value2",
-      };
-      addMetadataToMap(m, metadata);
-
-      expect(m.get("key1")).toEqual("value1");
-      expect(m.get("key2")).toEqual("value2");
-    });
-
-    it("should add nothing to map when metadata is not passed", () => {
-      const m = new Map<string, string>([]);
-      addMetadataToMap(m);
-
-      expect(m.entries()).toEqual(new Map<string, string>([]).entries());
-    });
-
-    it("should add nothing to map when metadata is undefined", () => {
-      const m = new Map<string, string>([]);
-      addMetadataToMap(m, undefined);
-
-      expect(m.entries()).toEqual(new Map<string, string>([]).entries());
-    });
-  });
   describe("createHTTPQueryParam", () => {
     it("converts a KeyValueType to a HTTP query parameters", () => {
       const metadata = {
@@ -114,20 +85,26 @@ describe("Client.util", () => {
 
   describe("createConfigurationType", () => {
     it("converts a dictionary to a configuration type", () => {
-      const item1 = new ConfigurationItem();
-      item1.setValue("value1");
-      item1.setVersion("v1");
-      item1.getMetadataMap().set("m1", "mv1");
+      const item1 = ConfigurationItem.create({
+        value: "value1",
+        version: "v1",
+        metadata: {
+            m1: "mv1",
+        },
+      });
 
-      const item2 = new ConfigurationItem();
-      item2.setValue("value2");
-      item2.setVersion("v2");
-      item2.getMetadataMap().set("m2", "mv2");
+      const item2 = ConfigurationItem.create({
+        value: "value2",
+        version: "v2",
+        metadata: {
+            m2: "mv2",
+        },
+      });
 
-      const m: Map<string, ConfigurationItem> = new Map([
-        ["key1", item1],
-        ["key2", item2],
-      ]);
+      const m = {
+        key1: item1,
+        key2: item2,
+      };
 
       const config = createConfigurationType(m);
       expect(config).toEqual({

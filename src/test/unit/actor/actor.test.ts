@@ -11,15 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprClient } from "../../../src";
-import ActorRuntime from "../../../src/actors/runtime/ActorRuntime";
-import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
+import { DaprClient } from "../../../../src";
+import ActorRuntime from "../../../../src/actors/runtime/ActorRuntime";
+import { ActorRuntimeOptions } from "../../../../src/types/actors/ActorRuntimeOptions";
 
 describe("Actor", () => {
   let client: DaprClient;
 
   beforeAll(async () => {
-    jest.mock("../../../src/implementation/Client/DaprClient"); // converts DaprClient into a mock constructor
+    jest.mock("../../../implementation/Client/DaprClient"); // converts DaprClient into a mock constructor
     client = new DaprClient({ daprHost: "127.0.0.1", daprPort: "1000" });
   });
 

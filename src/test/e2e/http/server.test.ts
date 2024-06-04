@@ -13,9 +13,9 @@ limitations under the License.
 
 import express from "express";
 import fetch from "node-fetch";
-import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../src";
-import { DaprInvokerCallbackContent } from "../../../src/types/DaprInvokerCallback.type";
-import { KeyValueType } from "../../../src/types/KeyValue.type";
+import { CommunicationProtocolEnum, DaprServer, HttpMethod } from "../../../../src";
+import { DaprInvokerCallbackContent } from "../../../../src/types/DaprInvokerCallback.type";
+import { KeyValueType } from "../../../../src/types/KeyValue.type";
 
 const serverHost = "127.0.0.1";
 const serverPort = "50001";

@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { DaprClient as GrpcDaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr_grpc_pb";
+import { DaprClient as GrpcDaprClient } from "../../../proto/dapr/proto/runtime/v1/dapr";
 import IClient from "../../../interfaces/Client/IClient";
 import { DaprClientOptions } from "../../../types/DaprClientOptions";
 import { Settings } from "../../../utils/Settings.util";

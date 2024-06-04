@@ -14,20 +14,17 @@ limitations under the License.
 import GRPCClient from "./GRPCClient";
 import {
   GetConfigurationRequest,
-  GetConfigurationResponse,
   SubscribeConfigurationRequest,
   SubscribeConfigurationResponse,
   UnsubscribeConfigurationRequest,
-  UnsubscribeConfigurationResponse,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/dapr";
 import IClientConfiguration from "../../../interfaces/Client/IClientConfiguration";
 import { KeyValueType } from "../../../types/KeyValue.type";
 import { GetConfigurationResponse as GetConfigurationResponseResult } from "../../../types/configuration/GetConfigurationResponse";
 import { SubscribeConfigurationResponse as SubscribeConfigurationResponseResult } from "../../../types/configuration/SubscribeConfigurationResponse";
 import { SubscribeConfigurationCallback } from "../../../types/configuration/SubscribeConfigurationCallback";
 import { SubscribeConfigurationStream } from "../../../types/configuration/SubscribeConfigurationStream";
-import { ConfigurationItem } from "../../../types/configuration/ConfigurationItem";
-import { addMetadataToMap, createConfigurationType } from "../../../utils/Client.util";
+import { createConfigurationType } from "../../../utils/Client.util";
 
 export default class GRPCClientConfiguration implements IClientConfiguration {
   client: GRPCClient;
@@ -37,26 +34,22 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
   }
 
   async get(storeName: string, keys: string[], metadataObj?: KeyValueType): Promise<GetConfigurationResponseResult> {
-    const msg = new GetConfigurationRequest();
-    msg.setStoreName(storeName);
-
-    if (keys && keys.length > 0) {
-      msg.setKeysList(keys.filter((i) => i !== ""));
-    }
-    addMetadataToMap(msg.getMetadataMap(), metadataObj);
+    const msg = GetConfigurationRequest.create({
+      storeName,
+      keys: keys.filter((i) => i !== ""),
+      metadata:  { ...metadataObj },
+    });
 
     const client = await this.client.getClient();
 
     return new Promise((resolve, reject) => {
-      client.getConfiguration(msg, (err, res: GetConfigurationResponse) => {
+      client.getConfiguration(msg, (err, res) => {
         if (err) {
           return reject(err);
         }
 
-        const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(res.getItemsMap());
-
         const result: SubscribeConfigurationResponseResult = {
-          items: configMap,
+          items: createConfigurationType(res.items),
         };
 
         return resolve(result);
@@ -91,15 +84,11 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     keys?: string[],
     metadataObj?: KeyValueType,
   ): Promise<SubscribeConfigurationStream> {
-    const msg = new SubscribeConfigurationRequest();
-    msg.setStoreName(storeName);
-
-    if (keys && keys.length > 0) {
-      msg.setKeysList(keys.filter((i) => i !== ""));
-    } else {
-      msg.setKeysList([]);
-    }
-    addMetadataToMap(msg.getMetadataMap(), metadataObj);
+    const msg = SubscribeConfigurationRequest.create({
+        storeName,
+        keys: keys?.concat(),
+        metadata: { ...metadataObj },
+    });
 
     const client = await this.client.getClient();
 
@@ -111,17 +100,15 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     let streamId: string;
 
     stream.on("data", async (data: SubscribeConfigurationResponse) => {
-      streamId = data.getId();
-      const items = data.getItemsMap();
+      streamId = data.id;
+      const items = data.items;
 
-      if (items.getLength() == 0) {
+      if (Object.keys(items).length === 0) {
         return;
       }
 
-      const configMap: { [k: string]: ConfigurationItem } = createConfigurationType(items);
-
       const wrapped: SubscribeConfigurationResponseResult = {
-        items: configMap,
+        items: createConfigurationType(items),
       };
 
       await cb(wrapped);
@@ -130,13 +117,14 @@ export default class GRPCClientConfiguration implements IClientConfiguration {
     return {
       stop: async () => {
         return new Promise((resolve, reject) => {
-          const req = new UnsubscribeConfigurationRequest();
-          req.setStoreName(storeName);
-          req.setId(streamId);
+          const req = UnsubscribeConfigurationRequest.create({
+            storeName,
+            id: streamId,
+          });
 
-          client.unsubscribeConfiguration(req, (err, res: UnsubscribeConfigurationResponse) => {
-            if (err || !res.getOk()) {
-              return reject(res.getMessage());
+          client.unsubscribeConfiguration(req, (err, res) => {
+            if (err || !res.ok) {
+              return reject(res.message);
             }
 
             // Clean up the node.js event emitter

@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import express from "express";
-import HTTPServerImpl from "../../../../src/implementation/Server/HTTPServer/HTTPServerImpl";
+import HTTPServerImpl from "../../../../../src/implementation/Server/HTTPServer/HTTPServerImpl";
 
 describe("HttpServerImpl", () => {
   const server = new HTTPServerImpl(express());
@@ -110,7 +110,7 @@ describe("HttpServerImpl", () => {
       ];
 
       requests.forEach((req) => {
-        const data = server.extractDataFromSubscribeRequest(req as any);
+        const data = server.extractDataFromSubscribeRequest(req);
         // If req.body is present, it should be returned as is.
         // Else, an empty string should be returned.
         if (req.body) {

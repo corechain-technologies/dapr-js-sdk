@@ -16,11 +16,11 @@ import {
   WorkflowRuntimeStatus,
   fromOrchestrationStatus,
   toOrchestrationStatus,
-} from "../../../src/workflow/runtime/WorkflowRuntimeStatus";
-import { getFunctionName } from "../../../src/workflow/internal";
-import { TWorkflow } from "../../../src/types/workflow/Workflow.type";
-import WorkflowContext from "../../../src/workflow/runtime/WorkflowContext";
-import WorkflowActivityContext from "../../../src/workflow/runtime/WorkflowActivityContext";
+} from "../../../../src/workflow/runtime/WorkflowRuntimeStatus";
+import { getFunctionName } from "../../../../src/workflow/internal";
+import { TWorkflow } from "../../../../src/types/workflow/Workflow.type";
+import WorkflowContext from "../../../../src/workflow/runtime/WorkflowContext";
+import WorkflowActivityContext from "../../../../src/workflow/runtime/WorkflowActivityContext";
 
 describe("Workflow Runtime Status", () => {
   describe("convert runtime status", () => {

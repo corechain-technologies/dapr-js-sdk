@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprServer, DaprPubSubStatusEnum } from "../../../src";
-import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
+import { CommunicationProtocolEnum, DaprServer, DaprPubSubStatusEnum } from "../../../../src";
+import * as NodeJSUtil from "../../../../src/utils/NodeJS.util";
 
 const serverHost = "127.0.0.1";
 const serverGrpcPort = "50001";

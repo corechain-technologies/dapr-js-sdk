@@ -12,14 +12,12 @@ limitations under the License.
 */
 
 import { randomUUID } from "crypto";
-import { Map } from "google-protobuf";
 
-import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common_pb";
+import { ConfigurationItem as ConfigurationItemProto } from "../proto/dapr/proto/common/v1/common";
 import { isCloudEvent } from "./CloudEvent.util";
 
 import { KeyValueType } from "../types/KeyValue.type";
 import { ConfigurationType } from "../types/configuration/Configuration.type";
-import { ConfigurationItem } from "../types/configuration/ConfigurationItem";
 import { PubSubBulkPublishEntry } from "../types/pubsub/PubSubBulkPublishEntry.type";
 import { PubSubBulkPublishResponse } from "../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../types/pubsub/PubSubBulkPublishMessage.type";
@@ -111,26 +109,16 @@ export function getStateConcurrencyValue(c?: StateConcurrencyEnum): "first-write
  * @param Map<string, common_pb.ConfigurationItemProto>
  * @returns ConfigurationType object
  */
-export function createConfigurationType(configDict: Map<string, ConfigurationItemProto>): ConfigurationType {
-  const configMap: { [k: string]: ConfigurationItem } = {};
-
-  configDict.forEach(function (v, k) {
-    const item: ConfigurationItem = {
+export function createConfigurationType(configDict: Record<string, ConfigurationItemProto>): ConfigurationType {
+  return Object.entries(configDict).reduce((acc, [k, v]) => ({
+    ...acc,
+    [k]: {
       key: k,
-      value: v.getValue(),
-      version: v.getVersion(),
-      metadata: v
-        .getMetadataMap()
-        .toObject()
-        .reduce((result: object, [key, value]) => {
-          // @ts-ignore
-          result[key] = value;
-          return result;
-        }, {}),
-    };
-    configMap[k] = item;
-  });
-  return configMap;
+      value: v.value,
+      version: v.version,
+      metadata: v.metadata,
+    }
+  }), {} as ConfigurationType);
 }
 
 /**

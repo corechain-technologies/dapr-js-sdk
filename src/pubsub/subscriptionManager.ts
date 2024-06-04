@@ -32,7 +32,7 @@ export class SubscriptionManager {
    * @returns true if the pubsub is registered
    */
   public isPubSubRegistered(pubsub: string): boolean {
-    return this.subscriptions[pubsub] !== undefined;
+    return this.subscriptions[pubsub] != null;
   }
 
   /**
@@ -42,7 +42,7 @@ export class SubscriptionManager {
    * @returns true if the pubsub and topic are registered
    */
   public isTopicRegistered(pubsub: string, topic: string): boolean {
-    return this.subscriptions[pubsub]?.[topic] !== undefined;
+    return this.subscriptions[pubsub]?.[topic] != null;
   }
 
   /**

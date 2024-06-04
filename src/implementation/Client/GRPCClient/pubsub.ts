@@ -16,12 +16,12 @@ import {
   BulkPublishRequest,
   BulkPublishRequestEntry,
   PublishEventRequest,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/dapr";
 import IClientPubSub from "../../../interfaces/Client/IClientPubSub";
 import { Logger } from "../../../logger/Logger";
 import * as SerializerUtil from "../../../utils/Serializer.util";
 import { KeyValueType } from "../../../types/KeyValue.type";
-import { addMetadataToMap, getBulkPublishEntries, getBulkPublishResponse } from "../../../utils/Client.util";
+import { getBulkPublishEntries, getBulkPublishResponse } from "../../../utils/Client.util";
 import { PubSubPublishResponseType } from "../../../types/pubsub/PubSubPublishResponse.type";
 import { PubSubBulkPublishResponse } from "../../../types/pubsub/PubSubBulkPublishResponse.type";
 import { PubSubBulkPublishMessage } from "../../../types/pubsub/PubSubBulkPublishMessage.type";
@@ -39,22 +39,23 @@ export default class GRPCClientPubSub implements IClientPubSub {
   }
 
   async publish(
-    pubSubName: string,
+    pubsubName: string,
     topic: string,
     data: object | string,
     options: PubSubPublishOptions = {},
   ): Promise<PubSubPublishResponseType> {
-    const msgService = new PublishEventRequest();
-    msgService.setPubsubName(pubSubName);
-    msgService.setTopic(topic);
+    const msgService = PublishEventRequest.create({ pubsubName, topic });
 
     if (data) {
       const serialized = SerializerUtil.serializeGrpc(data, options.contentType);
-      msgService.setData(serialized.serializedData);
-      msgService.setDataContentType(serialized.contentType);
+      msgService.data = serialized.serializedData;
+      msgService.dataContentType = serialized.contentType;
     }
 
-    addMetadataToMap(msgService.getMetadataMap(), options.metadata);
+    msgService.metadata = {
+        ...msgService.metadata,
+        ...options.metadata,
+    };
 
     const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
@@ -70,27 +71,28 @@ export default class GRPCClientPubSub implements IClientPubSub {
   }
 
   async publishBulk(
-    pubSubName: string,
+    pubsubName: string,
     topic: string,
     messages: PubSubBulkPublishMessage[],
     metadata?: KeyValueType | undefined,
   ): Promise<PubSubBulkPublishResponse> {
-    const bulkPublishRequest = new BulkPublishRequest();
-    bulkPublishRequest.setPubsubName(pubSubName);
-    bulkPublishRequest.setTopic(topic);
+    const bulkPublishRequest = BulkPublishRequest.create({ pubsubName, topic });
 
     const entries = getBulkPublishEntries(messages);
     const serializedEntries = entries.map((entry) => {
       const serialized = SerializerUtil.serializeGrpc(entry.event);
-      const bulkPublishEntry = new BulkPublishRequestEntry();
-      bulkPublishEntry.setEvent(serialized.serializedData);
-      bulkPublishEntry.setContentType(serialized.contentType);
-      bulkPublishEntry.setEntryId(entry.entryID);
-      return bulkPublishEntry;
+      return BulkPublishRequestEntry.create({
+            event: serialized.serializedData,
+            contentType: serialized.contentType,
+            entryId: entry.entryID,
+      });
     });
 
-    bulkPublishRequest.setEntriesList(serializedEntries);
-    addMetadataToMap(bulkPublishRequest.getMetadataMap(), metadata);
+    bulkPublishRequest.entries = serializedEntries.concat();
+    bulkPublishRequest.metadata = {
+        ...bulkPublishRequest.metadata,
+        ...metadata,
+    }
 
     const client = await this.client.getClient();
     return new Promise((resolve, _reject) => {
@@ -99,15 +101,15 @@ export default class GRPCClientPubSub implements IClientPubSub {
           return resolve(getBulkPublishResponse({ entries: entries, error: err }));
         }
 
-        const failedEntries = res.getFailedentriesList();
+        const failedEntries = res.failedEntries;
         if (failedEntries.length > 0) {
           return resolve(
             getBulkPublishResponse({
               entries: entries,
               response: {
                 failedEntries: failedEntries.map((entry) => ({
-                  entryID: entry.getEntryId(),
-                  error: entry.getError(),
+                  entryID: entry.entryId,
+                  error: entry.error,
                 })),
               },
             }),

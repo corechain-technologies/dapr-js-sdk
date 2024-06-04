@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ActorRuntimeOptions } from "../../../src/types/actors/ActorRuntimeOptions";
-import { getRegisteredActorResponse } from "../../../src/utils/Actors.util";
+import { ActorRuntimeOptions } from "../../../../src/types/actors/ActorRuntimeOptions";
+import { getRegisteredActorResponse } from "../../../../src/utils/Actors.util";
 
 describe("Actors.util", () => {
   describe("buildActorRuntimeConfigurationResponse", () => {

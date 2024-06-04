@@ -12,11 +12,11 @@ limitations under the License.
 */
 
 import * as grpc from "@grpc/grpc-js";
-import { Empty } from "google-protobuf/google/protobuf/empty_pb";
-import { Any } from "google-protobuf/google/protobuf/any_pb";
+import { Any } from "../../../proto/google/protobuf/any";
+import { Empty } from "../../../proto/google/protobuf/empty";
 
-import { IAppCallbackServer } from "../../../proto/dapr/proto/runtime/v1/appcallback_grpc_pb";
-import { HTTPExtension, InvokeRequest, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common_pb";
+import { AppCallbackServer, TopicEventResponse_TopicEventResponseStatus } from "../../../proto/dapr/proto/runtime/v1/appcallback";
+import { HTTPExtension_Verb, InvokeRequest, InvokeResponse } from "../../../proto/dapr/proto/common/v1/common";
 import {
   BindingEventRequest,
   BindingEventResponse,
@@ -31,8 +31,7 @@ import {
   TopicEventBulkRequest,
   TopicEventBulkResponse,
   TopicEventBulkResponseEntry,
-  TopicEventCERequest,
-} from "../../../proto/dapr/proto/runtime/v1/appcallback_pb";
+} from "../../../proto/dapr/proto/runtime/v1/appcallback";
 import * as HttpVerbUtil from "../../../utils/HttpVerb.util";
 import { TypeDaprBindingCallback } from "../../../types/DaprBindingCallback.type";
 import { TypeDaprPubSubCallback } from "../../../types/DaprPubSubCallback.type";
@@ -50,7 +49,7 @@ import { PubSubSubscriptionsType } from "../../../types/pubsub/PubSubSubscriptio
 
 // https://github.com/badsyntax/grpc-js-typescript/issues/1#issuecomment-705419742
 // @ts-ignore
-export default class GRPCServerImpl implements IAppCallbackServer {
+export default class GRPCServerImpl implements AppCallbackServer {
   private readonly logger: Logger;
   private readonly subscriptionManager: SubscriptionManager;
 
@@ -127,9 +126,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     call: grpc.ServerUnaryCall<InvokeRequest, InvokeResponse>,
     callback: grpc.sendUnaryData<InvokeResponse>,
   ): Promise<void> {
-    const method = call.request.getMethod();
-    const query = (call.request.getHttpExtension() as HTTPExtension).toObject();
-    const methodStr = HttpVerbUtil.convertHttpVerbNumberToString(query.verb);
+    const method = call.request.method;
+    const query = call.request.httpExtension;
+    const methodStr = HttpVerbUtil.convertHttpVerbNumberToString(query?.verb ?? HTTPExtension_Verb.NONE);
     const handlersInvokeKey = `${methodStr.toLowerCase()}|${method.toLowerCase()}`;
 
     if (!this.handlersInvoke[handlersInvokeKey]) {
@@ -137,27 +136,28 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       return;
     }
 
-    const body = Buffer.from((call.request.getData() as Any).getValue()).toString();
-    const contentType = call.request.getContentType();
+    const body = Buffer.from(call.request.data?.value ?? "").toString();
+    const contentType = call.request.contentType;
 
     // Invoke the Method Callback
     // @TODO add call.metadata, it has headers of original HTTP request.
     const invokeResponseData = await this.handlersInvoke[handlersInvokeKey]({
       body,
-      query: query.querystring,
+      query: query?.querystring,
       metadata: {
         contentType,
       },
     });
 
     // Generate Response
-    const res = new InvokeResponse();
-    res.setContentType("application/json");
+    const res = InvokeResponse.create({
+        contentType: "application/json"
+    });
 
     if (invokeResponseData) {
-      const msgSerialized = new Any();
-      msgSerialized.setValue(Buffer.from(JSON.stringify(invokeResponseData), "utf-8"));
-      res.setData(msgSerialized);
+      res.data = Any.create({
+        value: Buffer.from(JSON.stringify(invokeResponseData), "utf-8"),
+      });
     }
     // @TODO add Error Handleling, for ex if service returned error with status code
     // also maybe we can map GRPC error codes in a enum
@@ -171,14 +171,14 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     callback: grpc.sendUnaryData<BindingEventResponse>,
   ): Promise<void> {
     const req = call.request;
-    const handlerKey = this.createInputBindingHandlerKey(req.getName());
+    const handlerKey = this.createInputBindingHandlerKey(req.name);
 
     if (!this.handlersBindings[handlerKey]) {
       this.logger.warn(`Event for binding: "${handlerKey}" was not handled`);
       return;
     }
 
-    const data = Buffer.from(req.getData()).toString();
+    const data = Buffer.from(req.data).toString();
 
     let dataParsed;
 
@@ -192,8 +192,7 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     // @todo: we should add the state store or output binding binding
     // see: https://docs.dapr.io/reference/api/bindings_api/#binding-endpoints
-    const res = new BindingEventResponse();
-    return callback(null, res);
+    return callback(null, BindingEventResponse.create());
   }
 
   async onTopicEvent(
@@ -201,14 +200,14 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     callback: grpc.sendUnaryData<TopicEventResponse>,
   ): Promise<void> {
     const req = call.request;
-    const pubsub = req.getPubsubName();
+    const pubsub = req.pubsubName;
 
     if (!this.subscriptionManager.isPubSubRegistered(pubsub)) {
       this.logger.warn(`PubSub '${pubsub}' has not been registered, ignoring event.`);
       return;
     }
 
-    const [topic, route] = this.subscriptionManager.lookupTopicWilcard(pubsub, req.getTopic(), req.getPath());
+    const [topic, route] = this.subscriptionManager.lookupTopicWilcard(pubsub, req.topic, req.path);
     if (topic == "") {
       this.logger.warn(`Topic '${topic}' has not been subscribed to pubsub '${pubsub}', ignoring event.`);
       return;
@@ -222,9 +221,9 @@ export default class GRPCServerImpl implements IAppCallbackServer {
       return;
     }
 
-    const data = deserializeGrpc(req.getDataContentType(), req.getData());
+    const data = deserializeGrpc(req.dataContentType, req.data);
 
-    const res = new TopicEventResponse();
+    const res = TopicEventResponse.create();
 
     // Get the headers
     const headers: { [key: string]: string } = {};
@@ -242,14 +241,14 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
     switch (status) {
       case DaprPubSubStatusEnum.RETRY:
-        res.setStatus(TopicEventResponse.TopicEventResponseStatus.RETRY);
+        res.status = TopicEventResponse_TopicEventResponseStatus.RETRY;
         break;
       case DaprPubSubStatusEnum.DROP:
-        res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+        res.status = TopicEventResponse_TopicEventResponseStatus.DROP;
         break;
       case DaprPubSubStatusEnum.SUCCESS:
       default:
-        res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
+        res.status = TopicEventResponse_TopicEventResponseStatus.SUCCESS;
         break;
     }
 
@@ -261,13 +260,13 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     callback: grpc.sendUnaryData<TopicEventBulkResponse>,
   ): Promise<void> {
     const req = call.request;
-    const pubsub = req.getPubsubName();
+    const pubsub = req.pubsubName;
     if (!this.subscriptionManager.isPubSubRegistered(pubsub)) {
       this.logger.warn(`PubSub '${pubsub}' has not been registered, ignoring bulk event.`);
       return;
     }
 
-    const [topic, route] = this.subscriptionManager.lookupTopicWilcard(pubsub, req.getTopic(), req.getPath());
+    const [topic, route] = this.subscriptionManager.lookupTopicWilcard(pubsub, req.topic, req.path);
     if (topic == "") {
       this.logger.warn(`Topic '${topic}' has not been subscribed to pubsub '${pubsub}', ignoring bulk event.`);
       return;
@@ -282,21 +281,18 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     }
 
     const resArr: TopicEventBulkResponseEntry[] = [];
-    const entries = req.getEntriesList();
+    const entries = req.entries;
 
     for (const ind in entries) {
       const event = entries[ind];
       let data: any;
-      if (event.hasBytes()) {
-        data = deserializeGrpc(event.getContentType(), event.getBytes());
-      } else if (event.hasCloudEvent()) {
-        const cloudEvent = event.getCloudEvent();
-        if (cloudEvent instanceof TopicEventCERequest) {
-          data = deserializeGrpc(cloudEvent.getDataContentType(), cloudEvent.getData());
-        }
+      if (event.bytes) {
+        data = deserializeGrpc(event.contentType, event.bytes);
+      } else if (event.cloudEvent) {
+        data = deserializeGrpc(event.cloudEvent.dataContentType, event.cloudEvent.data);
       }
 
-      const res = new TopicEventBulkResponseEntry();
+      const res = TopicEventBulkResponseEntry.create();
 
       // Get the headers
       const headers: { [key: string]: string } = {};
@@ -314,23 +310,22 @@ export default class GRPCServerImpl implements IAppCallbackServer {
 
       switch (status) {
         case DaprPubSubStatusEnum.RETRY:
-          res.setStatus(TopicEventResponse.TopicEventResponseStatus.RETRY);
+          res.status = TopicEventResponse_TopicEventResponseStatus.RETRY;
           break;
         case DaprPubSubStatusEnum.DROP:
-          res.setStatus(TopicEventResponse.TopicEventResponseStatus.DROP);
+          res.status = TopicEventResponse_TopicEventResponseStatus.DROP;
           break;
         case DaprPubSubStatusEnum.SUCCESS:
         default:
-          res.setStatus(TopicEventResponse.TopicEventResponseStatus.SUCCESS);
+          res.status = TopicEventResponse_TopicEventResponseStatus.SUCCESS;
           break;
       }
 
-      res.setEntryId(event.getEntryId());
+      res.entryId = event.entryId;
       resArr.push(res);
     }
 
-    const totalRes = new TopicEventBulkResponse();
-    totalRes.setStatusesList(resArr);
+    const totalRes = TopicEventBulkResponse.create({ statuses: resArr });
 
     return callback(null, totalRes);
   }
@@ -376,71 +371,72 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     call: grpc.ServerUnaryCall<Empty, ListTopicSubscriptionsResponse>,
     callback: grpc.sendUnaryData<ListTopicSubscriptionsResponse>,
   ): Promise<void> {
-    const res = new ListTopicSubscriptionsResponse();
+    const res = ListTopicSubscriptionsResponse.create();
     const subscriptions = [];
 
     for (const pubsub of this.subscriptionManager.getRegisteredPubSubs()) {
       for (const topic of this.subscriptionManager.getRegisteredTopics(pubsub)) {
-        const topicSubscription = new TopicSubscription();
-        topicSubscription.setPubsubName(pubsub);
-        topicSubscription.setTopic(topic);
+        const topicSubscription = TopicSubscription.create({ pubsubName: pubsub, topic });
 
         // Dapr routes
         const daprConfig = this.subscriptionManager.getSubscription(pubsub, topic).dapr;
 
         if (daprConfig?.deadLetterTopic) {
-          topicSubscription.setDeadLetterTopic(daprConfig.deadLetterTopic);
+          topicSubscription.deadLetterTopic = daprConfig.deadLetterTopic;
         }
 
         if (daprConfig?.bulkSubscribe) {
-          const bulkSubscribe = new BulkSubscribeConfig();
-          bulkSubscribe.setEnabled(daprConfig.bulkSubscribe.enabled);
+          const bulkSubscribe = BulkSubscribeConfig.create({
+            enabled: daprConfig.bulkSubscribe.enabled,
+          });
 
           if (daprConfig?.bulkSubscribe?.maxMessagesCount) {
-            bulkSubscribe.setMaxMessagesCount(daprConfig.bulkSubscribe.maxMessagesCount);
+            bulkSubscribe.maxMessagesCount = daprConfig.bulkSubscribe.maxMessagesCount;
           }
 
           if (daprConfig?.bulkSubscribe?.maxAwaitDurationMs) {
-            bulkSubscribe.setMaxAwaitDurationMs(daprConfig.bulkSubscribe.maxAwaitDurationMs);
+            bulkSubscribe.maxAwaitDurationMs = daprConfig.bulkSubscribe.maxAwaitDurationMs;
           }
 
-          topicSubscription.setBulkSubscribe(bulkSubscribe);
+          topicSubscription.bulkSubscribe = bulkSubscribe;
         }
 
         if (daprConfig?.metadata) {
-          for (const [mKey, mValue] of Object.entries(daprConfig.metadata)) {
-            topicSubscription.getMetadataMap().set(mKey, mValue);
+          topicSubscription.metadata = {
+            ...topicSubscription.metadata,
+            ...daprConfig.metadata,
           }
         }
 
         if (daprConfig?.routes) {
-          const routes = new TopicRoutes();
+          const routes = TopicRoutes.create();
 
           if (daprConfig?.routes?.default) {
-            routes.setDefault(daprConfig?.routes?.default);
+            routes.default = daprConfig?.routes?.default;
           }
 
           if (daprConfig?.routes?.rules) {
             for (const ruleItem of daprConfig.routes.rules) {
-              const rule = new TopicRule();
-              rule.setMatch(ruleItem.match);
-              rule.setPath(ruleItem.path);
-              routes.addRules(rule);
+              const rule = TopicRule.create({
+                match: ruleItem.match,
+                path: ruleItem.path,
+              });
+              routes.rules.push(rule);
             }
           }
 
-          topicSubscription.setRoutes(routes);
+          topicSubscription.routes = routes;
         } else {
-          const routes = new TopicRoutes();
-          routes.setDefault(daprConfig?.route || Settings.getDefaultPubSubRouteName());
-          topicSubscription.setRoutes(routes);
+          topicSubscription.routes = TopicRoutes.create({
+            default: daprConfig?.route || Settings.getDefaultPubSubRouteName(),
+          });
         }
 
         subscriptions.push(topicSubscription);
       }
     }
 
-    res.setSubscriptionsList(subscriptions);
+    res.subscriptions = subscriptions;
 
     return callback(null, res);
   }
@@ -450,8 +446,8 @@ export default class GRPCServerImpl implements IAppCallbackServer {
     call: grpc.ServerUnaryCall<Empty, ListInputBindingsResponse>,
     callback: grpc.sendUnaryData<ListInputBindingsResponse>,
   ): Promise<void> {
-    const res = new ListInputBindingsResponse();
-    res.setBindingsList(Object.keys(this.handlersBindings));
-    return callback(null, res);
+    return callback(null, ListInputBindingsResponse.create({
+        bindings: Object.keys(this.handlersBindings),
+    }));
   }
 }

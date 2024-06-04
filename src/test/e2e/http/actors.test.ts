@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum, DaprClient, DaprClientOptions, DaprServer } from "../../../src";
+import { CommunicationProtocolEnum, DaprClient, DaprClientOptions, DaprServer } from "../../../../src";
 import fetch from "node-fetch";
 
-import * as NodeJSUtil from "../../../src/utils/NodeJS.util";
-import ActorId from "../../../src/actors/ActorId";
-import ActorProxyBuilder from "../../../src/actors/client/ActorProxyBuilder";
+import * as NodeJSUtil from "../../../../src/utils/NodeJS.util";
+import ActorId from "../../../../src/actors/ActorId";
+import ActorProxyBuilder from "../../../../src/actors/client/ActorProxyBuilder";
 import DemoActorActivateImpl from "../../actor/DemoActorActivateImpl";
 import DemoActorCounterImpl from "../../actor/DemoActorCounterImpl";
 import DemoActorCounterInterface from "../../actor/DemoActorCounterInterface";

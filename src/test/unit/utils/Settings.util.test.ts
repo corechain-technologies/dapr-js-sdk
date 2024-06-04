@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { CommunicationProtocolEnum } from "../../../src";
-import { Settings } from "../../../src/utils/Settings.util";
+import { CommunicationProtocolEnum } from "../../../../src";
+import { Settings } from "../../../../src/utils/Settings.util";
 
 describe("Settings", () => {
   describe("getDefaultPort returns the correct default when", () => {

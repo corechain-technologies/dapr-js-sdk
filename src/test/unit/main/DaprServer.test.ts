@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { DaprServer } from "../../../src";
+import { DaprServer } from "../../../../src";
 
 const host = "127.0.0.1";
 const port = "50001";

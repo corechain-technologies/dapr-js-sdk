@@ -19,7 +19,8 @@ import {
   TryLockResponse,
   UnlockRequest,
   UnlockResponse,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+  UnlockResponse_Status,
+} from "../../../proto/dapr/proto/runtime/v1/dapr";
 import IClientLock from "../../../interfaces/Client/IClientLock";
 
 export default class GRPCClientLock implements IClientLock {
@@ -35,11 +36,12 @@ export default class GRPCClientLock implements IClientLock {
     lockOwner: string,
     expiryInSeconds: number,
   ): Promise<LockResponseResult> {
-    const request = new TryLockRequest()
-      .setStoreName(storeName)
-      .setResourceId(resourceId)
-      .setLockOwner(lockOwner)
-      .setExpiryInSeconds(expiryInSeconds);
+    const request = TryLockRequest.create({
+        storeName,
+        resourceId,
+        expiryInSeconds,
+        lockOwner,
+    });
 
     const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
@@ -48,17 +50,19 @@ export default class GRPCClientLock implements IClientLock {
           return reject(err);
         }
 
-        const wrapped: LockResponseResult = {
-          success: res.getSuccess(),
-        };
-
-        return resolve(wrapped);
+        return resolve({
+          success: res.success,
+        } satisfies LockResponseResult);
       });
     });
   }
 
   async unlock(storeName: string, resourceId: string, lockOwner: string): Promise<UnLockResponseResult> {
-    const request = new UnlockRequest().setStoreName(storeName).setResourceId(resourceId).setLockOwner(lockOwner);
+    const request = UnlockRequest.create({
+        lockOwner,
+        storeName,
+        resourceId,
+    })
 
     const client = await this.client.getClient();
     return new Promise((resolve, reject) => {
@@ -77,12 +81,12 @@ export default class GRPCClientLock implements IClientLock {
   }
 
   getUnlockResponse(res: UnlockResponse) {
-    switch (res.getStatus()) {
-      case UnlockResponse.Status.SUCCESS:
+    switch (res.status) {
+      case UnlockResponse_Status.SUCCESS:
         return LockStatus.Success;
-      case UnlockResponse.Status.LOCK_DOES_NOT_EXIST:
+      case UnlockResponse_Status.LOCK_DOES_NOT_EXIST:
         return LockStatus.LockDoesNotExist;
-      case UnlockResponse.Status.LOCK_BELONGS_TO_OTHERS:
+      case UnlockResponse_Status.LOCK_BELONGS_TO_OTHERS:
         return LockStatus.LockBelongsToOthers;
       default:
         return LockStatus.InternalError;

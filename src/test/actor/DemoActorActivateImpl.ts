@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractActor } from "../../src";
+import { AbstractActor } from "../../index";
 import DemoActorActivateInterface from "./DemoActorActivateInterface";
 
 export default class DemoActorActivateImpl extends AbstractActor implements DemoActorActivateInterface {

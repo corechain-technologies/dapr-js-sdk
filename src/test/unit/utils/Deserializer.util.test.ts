@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as DeserializerUtil from "../../../src/utils/Deserializer.util";
+import * as DeserializerUtil from "../../../../src/utils/Deserializer.util";
 import { TextEncoder } from "util";
 
 describe("deserializer", () => {

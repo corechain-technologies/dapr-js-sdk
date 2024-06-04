@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import * as SerializerUtil from "../../../src/utils/Serializer.util";
+import * as SerializerUtil from "../../../../src/utils/Serializer.util";
 
 describe("serializer", () => {
   // Helper function to run the test for both HTTP and gRPC.

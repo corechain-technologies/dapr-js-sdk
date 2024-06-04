@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCClientBinding from "../../../../src/implementation/Client/GRPCClient/binding";
-import { InvokeBindingRequest } from "../../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
+import GRPCClientBinding from "../../../../../src/implementation/Client/GRPCClient/binding";
+import { InvokeBindingRequest } from "../../../../../src/proto/dapr/proto/runtime/v1/dapr";
 
 describe("grpc/binding", () => {
   describe("send should call invokeBinding with correct arguments", () => {
@@ -20,10 +20,10 @@ describe("grpc/binding", () => {
       const mockInvokeBinding = (req: InvokeBindingRequest, callback: any) => {
         requests.push(req);
         callback(null, {
-          getData: () => {
+          get data() {
             return "";
           },
-          getMetadataMap: () => {
+          get metadata() {
             return {};
           },
         });
@@ -44,11 +44,11 @@ describe("grpc/binding", () => {
       // Check the request
       expect(requests.length).toBe(1);
       const binding = requests[0];
-      expect(binding.getName()).toBe("my-binding");
-      expect(binding.getOperation()).toBe("create");
-      expect(binding.getData()).toStrictEqual(Buffer.from(JSON.stringify({ key: "value" })));
-      expect(binding.getMetadataMap().getLength()).toBe(1);
-      expect(binding.getMetadataMap().get("mKey")).toBe("mValue");
+      expect(binding.name).toBe("my-binding");
+      expect(binding.operation).toBe("create");
+      expect(binding.data).toStrictEqual(Buffer.from(JSON.stringify({ key: "value" })));
+      expect(Object.keys(binding.metadata).length).toBe(1);
+      expect(binding.metadata["mKey"]).toBe("mValue");
     });
 
     it("should skip data when it's not present", async () => {
@@ -59,11 +59,11 @@ describe("grpc/binding", () => {
       // Check the request
       expect(requests.length).toBe(1);
       const binding = requests[0];
-      expect(binding.getName()).toBe("my-binding");
-      expect(binding.getOperation()).toBe("create");
-      expect(binding.getData()).toStrictEqual("");
-      expect(binding.getMetadataMap().getLength()).toBe(1);
-      expect(binding.getMetadataMap().get("mKey")).toBe("mValue");
+      expect(binding.name).toBe("my-binding");
+      expect(binding.operation).toBe("create");
+      expect(binding.data.toString()).toStrictEqual("");
+      expect(Object.keys(binding.metadata).length).toBe(1);
+      expect(binding.metadata["mKey"]).toBe("mValue");
     });
   });
 });

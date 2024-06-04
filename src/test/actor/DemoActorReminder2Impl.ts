@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { AbstractActor, Temporal } from "../../src";
+import { AbstractActor, Temporal } from "../../index";
 import DemoActorReminderInterface from "./DemoActorReminderInterface";
 
 export default class DemoActorReminder2Impl extends AbstractActor implements DemoActorReminderInterface {

@@ -16,12 +16,12 @@ import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 import * as grpc from "@grpc/grpc-js";
-import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../src";
-import { SubscribeConfigurationResponse } from "../../../src/types/configuration/SubscribeConfigurationResponse";
+import { CommunicationProtocolEnum, DaprClient, LogLevel } from "../../../../src";
+import { SubscribeConfigurationResponse } from "../../../../src/types/configuration/SubscribeConfigurationResponse";
 import * as DockerUtils from "../../utils/DockerUtil";
-import { DaprClient as DaprClientGrpc } from "../../../src/proto/dapr/proto/runtime/v1/dapr_grpc_pb";
+import { DaprClient as DaprClientGrpc } from "../../../../src/proto/dapr/proto/runtime/v1/dapr";
 import { NextCall } from "@grpc/grpc-js/build/src/client-interceptors";
-import { GetMetadataRequest } from "../../../src/proto/dapr/proto/runtime/v1/dapr_pb";
+import { Empty } from "../../../proto/google/protobuf/empty";
 
 const daprHost = "localhost";
 const daprPort = "50000"; // Dapr Sidecar Port of this Example Server
@@ -76,7 +76,7 @@ describe("grpc/client", () => {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
+      await new Promise((resolve) => clientProxy.getMetadata(Empty.create(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe("test-suite");
@@ -104,7 +104,7 @@ describe("grpc/client", () => {
         interceptors: [mockInterceptor],
       });
 
-      await new Promise((resolve) => clientProxy.getMetadata(new GetMetadataRequest(), resolve));
+      await new Promise((resolve) => clientProxy.getMetadata(Empty.create(), resolve));
 
       expect(mockInterceptor.mock.calls.length).toBe(1);
       expect(mockMetadataRes.get("dapr-app-id")[0]).toBe(process.env.APP_ID);

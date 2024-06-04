@@ -21,7 +21,7 @@ import {
   EncryptRequest as pbEncryptRequest,
   DecryptRequestOptions as pbDecryptRequestOptions,
   DecryptRequest as pbDecryptRequest,
-} from "../../../proto/dapr/proto/runtime/v1/dapr_pb";
+} from "../../../proto/dapr/proto/runtime/v1/dapr";
 import { DaprChunkedStream } from "../../../utils/Streams.util";
 
 export default class GRPCClientCrypto implements IClientCrypto {
@@ -66,25 +66,10 @@ export default class GRPCClientCrypto implements IClientCrypto {
     const grpcStream = client.encryptAlpha1();
 
     // Create a duplex stream that will send data to the server and read from it
-    const duplexStream = new DaprChunkedStream(grpcStream, pbEncryptRequest, (req) => {
-      // Disable the @typescript-eslint/no-non-null-assertion linter in this block because opts here is guaranteed to be non-nil (see the check above), but TS doesn't seem to believe that
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      const reqOptions = new pbEncryptRequestOptions();
-      reqOptions.setComponentName(opts!.componentName);
-      reqOptions.setKeyName(opts!.keyName);
-      reqOptions.setKeyWrapAlgorithm(opts!.keyWrapAlgorithm);
-      if (opts!.dataEncryptionCipher) {
-        reqOptions.setDataEncryptionCipher(opts!.dataEncryptionCipher);
-      }
-      if (opts!.decryptionKeyName) {
-        reqOptions.setDecryptionKeyName(opts!.decryptionKeyName);
-      }
-      if (opts!.omitDecryptionKeyName) {
-        reqOptions.setOmitDecryptionKeyName(opts!.omitDecryptionKeyName);
-      }
-      req.setOptions(reqOptions);
-      /* eslint-enable @typescript-eslint/no-non-null-assertion */
-    });
+    const duplexStream = new DaprChunkedStream(grpcStream, pbEncryptRequest, (req) => ({
+      ...req,
+      options: pbEncryptRequestOptions.create(opts),
+    }));
 
     // Process the data
     return this.processStream(duplexStream, inData);
@@ -116,17 +101,13 @@ export default class GRPCClientCrypto implements IClientCrypto {
     const grpcStream = client.decryptAlpha1();
 
     // Create a duplex stream that will send data to the server and read from it
-    const duplexStream = new DaprChunkedStream(grpcStream, pbDecryptRequest, (req) => {
-      // Disable the @typescript-eslint/no-non-null-assertion linter in this block because opts here is guaranteed to be non-nil (see the check above), but TS doesn't seem to believe that
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      const reqOptions = new pbDecryptRequestOptions();
-      reqOptions.setComponentName(opts!.componentName);
-      if (opts!.keyName) {
-        reqOptions.setKeyName(opts!.keyName);
-      }
-      req.setOptions(reqOptions);
-      /* eslint-enable @typescript-eslint/no-non-null-assertion */
-    });
+    const duplexStream = new DaprChunkedStream(grpcStream, pbDecryptRequest, (req) => ({
+      ...req,
+      options: pbDecryptRequestOptions.create({
+        componentName: opts?.componentName,
+        keyName: opts?.keyName,
+      }),
+    }));
 
     // Process the data
     return this.processStream(duplexStream, inData);

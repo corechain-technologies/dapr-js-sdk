@@ -43,31 +43,27 @@ export default class HTTPServerImpl {
    * @param req HTTP Request
    * @returns Data from the request body.
    */
-  extractDataFromSubscribeRequest(req: any): any {
-    const payload = req.body ?? "";
+  extractDataFromSubscribeRequest(req: unknown) {
+    const payload = typeof req === "object" && req != null && "body" in req ? req.body : "";
 
-    // The payload should be an object with string keys and any values.
-    if (!(payload instanceof Object) || payload instanceof Array || payload instanceof Buffer) {
-      this.logger.warn(`Could not extract data from request body ${JSON.stringify(payload)}, returning it as-is.`);
-      return payload;
-    }
+    if (payload != null) {
+        // Use data from req.body.data if present.
+        if (typeof payload === "object" && "data" in payload) {
+            return payload.data;
+        }
 
-    // Use data from req.body.data if present.
-    if (payload.data) {
-      return payload.data;
-    }
+        // In case of rawPayload, data is present in req.body.data_base64 as base64 encoded string.
+        if (typeof payload === "object" && "data_base64" in payload && payload.data_base64 && typeof payload.data_base64 === "string") {
+            const parsedBase64 = Buffer.from(payload.data_base64, "base64").toString();
 
-    // In case of rawPayload, data is present in req.body.data_base64 as base64 encoded string.
-    if (payload.data_base64 && typeof payload.data_base64 === "string") {
-      const parsedBase64 = Buffer.from(payload.data_base64, "base64").toString();
-
-      try {
-        // This can be JSON, so try to parse it.
-        return JSON.parse(parsedBase64);
-      } catch (_e) {
-        // If it's not JSON, use the string as-is.
-        return parsedBase64;
-      }
+            try {
+                // This can be JSON, so try to parse it.
+                return JSON.parse(parsedBase64);
+            } catch (_e) {
+                // If it's not JSON, use the string as-is.
+                return parsedBase64;
+            }
+        }
     }
 
     // If we can't find the data, return the request body as-is.

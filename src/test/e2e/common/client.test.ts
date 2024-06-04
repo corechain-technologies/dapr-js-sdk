@@ -18,9 +18,9 @@ import {
   LogLevel,
   StateConcurrencyEnum,
   StateConsistencyEnum,
-} from "../../../src";
-import { sleep } from "../../../src/utils/NodeJS.util";
-import { LockStatus } from "../../../src/types/lock/UnlockResponse";
+} from "../../../../src";
+import { sleep } from "../../../../src/utils/NodeJS.util";
+import { LockStatus } from "../../../../src/types/lock/UnlockResponse";
 
 const daprHost = "127.0.0.1";
 const daprGrpcPort = "50000";

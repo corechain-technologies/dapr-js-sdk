@@ -19,8 +19,8 @@
       }
     ],
     "header/header": [
-      "error",
-      "block",
+      "off",
+      "line",
       [
         "",
         { "pattern": "Copyright \\d{4} The Dapr Authors", "template": "Copyright 2022 The Dapr Authors" },

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import GRPCServerImpl from "../../../../src/implementation/Server/GRPCServer/GRPCServerImpl";
+import GRPCServerImpl from "../../../../../src/implementation/Server/GRPCServer/GRPCServerImpl";
 
 describe("GRPCServerImpl", () => {
   const mockLogWarn = jest.fn();
@@ -37,7 +37,7 @@ describe("GRPCServerImpl", () => {
       await g.onTopicEvent(
         {
           request: {
-            getPubsubName: () => "pubsub",
+            get pubsubName() { return "pubsub" },
           },
         } as any,
         () => {
@@ -64,9 +64,9 @@ describe("GRPCServerImpl", () => {
       await g.onTopicEvent(
         {
           request: {
-            getPubsubName: () => "pubsub",
-            getTopic: () => "",
-            getPath: () => "path",
+            get pubsubName() { return "pubsub"; },
+            get topic() { return ""; },
+            get path() { return "path"; },
           },
         } as any,
         () => {
@@ -90,7 +90,7 @@ describe("GRPCServerImpl", () => {
       await g.onBulkTopicEventAlpha1(
         {
           request: {
-            getPubsubName: () => "pubsub",
+            get pubsubName() { return "pubsub"; },
           },
         } as any,
         () => {
@@ -117,9 +117,9 @@ describe("GRPCServerImpl", () => {
       await g.onBulkTopicEventAlpha1(
         {
           request: {
-            getPubsubName: () => "pubsub",
-            getTopic: () => "",
-            getPath: () => "path",
+            get pubsubName() { return "pubsub"; },
+            get topic() { return ""; },
+            get path() { return "path"; },
           },
         } as any,
         () => {

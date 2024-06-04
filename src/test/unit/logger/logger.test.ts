@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { LoggerService } from "../../../src";
-import { Logger } from "../../../src/logger/Logger";
-import { LogLevel } from "../../../src/types/logger/LogLevel";
+import { LoggerService } from "../../../../src";
+import { Logger } from "../../../../src/logger/Logger";
+import { LogLevel } from "../../../../src/types/logger/LogLevel";
 
 describe("Logger", () => {
   it("should not display logs below the set log level", () => {

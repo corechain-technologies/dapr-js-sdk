@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { PropertyRequiredError } from "../../../src/errors/PropertyRequiredError";
+import { PropertyRequiredError } from "../../../../src/errors/PropertyRequiredError";
 
 describe("PropertyRequiredError_class", () => {
   // Tests that the constructor creates an instance of PropertyRequiredError
