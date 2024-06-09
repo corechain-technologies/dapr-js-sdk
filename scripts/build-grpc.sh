@@ -11,15 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-OS="$(uname | tr '[:upper:]' '[:lower:]')"
-ARCH="$(uname -m)"
+# OS="$(uname | tr '[:upper:]' '[:lower:]')"
+# ARCH="$(uname -m)"
 
 # Proto buf generation
-APPCALLBACK="appcallback"
-COMMON="common"
-DAPR="dapr"
-RUNTIME="runtime"
-GOOGLE_ANY="runtime"
+# APPCALLBACK="appcallback"
+# COMMON="common"
+# DAPR="dapr"
+# RUNTIME="runtime"
+# GOOGLE_ANY="runtime"
 
 # Path to store output
 PATH_ROOT="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
@@ -57,7 +57,7 @@ downloadFile() {
 	DST=$2
 
 	# Ensure target path exists
-	mkdir -p $(dirname $DST)
+	mkdir -p "$(dirname "$DST")"
 
 	# Download the file
 	echo "[$HTTP_REQUEST_CLI] Downloading $1 ..."
@@ -99,14 +99,14 @@ generateGrpc() {
 	#     "$PATH_PROTO/$PATH_FILE"
 }
 
-fail_trap() {
-	result=$?
-	if [ $result != 0 ]; then
-		echo "Failed to generate gRPC interface and proto buf: $ret_val"
-	fi
-	cleanup
-	exit $result
-}
+# fail_trap() {
+# 	result=$?
+# 	if [ $result != 0 ]; then
+# 		echo "Failed to generate gRPC interface and proto buf: $ret_val"
+# 	fi
+# 	cleanup
+# 	exit $result
+# }
 
 cleanup() {
 	find $PATH_PROTO -type f -name '*.proto' -delete
@@ -189,10 +189,10 @@ TS_PROTO_OPTS="$(cat <<-EOF | grep -vE '^\s*#' | xargs echo | tr ' ' ','
 	# rpcErrorHandler=true
 	stringEnums=true
 	# unrecognizedEnum=false
-	useAbortSignal=true
+	# useAbortSignal=true
 	useAsyncIterable=true
-	# useExactTypes=false
-	# useOptionals=none
+	useExactTypes=true
+	useOptionals=none
 	# useReadonlyTypes=true
 EOF
 )"
