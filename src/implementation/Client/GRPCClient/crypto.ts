@@ -17,10 +17,10 @@ import GRPCClient from "./GRPCClient";
 import { type DecryptRequest, type EncryptRequest } from "../../../types/crypto/Requests";
 import IClientCrypto from "../../../interfaces/Client/IClientCrypto";
 import {
-  EncryptRequestOptions as pbEncryptRequestOptions,
   EncryptRequest as pbEncryptRequest,
   DecryptRequestOptions as pbDecryptRequestOptions,
   DecryptRequest as pbDecryptRequest,
+  EncryptResponse,
 } from "../../../proto/dapr/proto/runtime/v1/dapr";
 import { DaprChunkedStream } from "../../../utils/Streams.util";
 
@@ -66,10 +66,7 @@ export default class GRPCClientCrypto implements IClientCrypto {
     const grpcStream = client.encryptAlpha1();
 
     // Create a duplex stream that will send data to the server and read from it
-    const duplexStream = new DaprChunkedStream(grpcStream, pbEncryptRequest, (req) => ({
-      ...req,
-      options: pbEncryptRequestOptions.create(opts),
-    }));
+    const duplexStream = new DaprChunkedStream<pbEncryptRequest, EncryptResponse>(grpcStream, pbEncryptRequest, (req) => ({ ...req }));
 
     // Process the data
     return this.processStream(duplexStream, inData);

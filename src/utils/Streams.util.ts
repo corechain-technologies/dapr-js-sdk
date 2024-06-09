@@ -13,22 +13,21 @@ limitations under the License.
 
 import { Duplex } from "node:stream";
 import { ClientDuplexStream } from "@grpc/grpc-js";
-import Long from "long";
+import long from "long";
 import { StreamPayload } from "../proto/dapr/proto/common/v1/common";
+import { DecryptRequest, EncryptRequest } from "../proto/dapr/proto/runtime/v1/dapr";
 
-interface MessageWithPayload {
-    payload: StreamPayload | undefined;
-}
+type MessageWithPayload = DecryptRequest | EncryptRequest;
 
 /**
  * DaprChunkedStream is a Readable stream that processes data sent from Dapr over a gRPC stream, chunked.
  */
-export class DaprChunkedStream<T extends MessageWithPayload, U extends MessageWithPayload> extends Duplex {
+export class DaprChunkedStream<T extends MessageWithPayload, U> extends Duplex {
   private grpcStream: ClientDuplexStream<T, U>;
   private reqFactory: { create: () => T };
-  private setReqOptionsFn: (req: T) => void;
-  private writeSeq = new Long(0);
-  private readSeq = new Long(0);
+  private setReqOptionsFn: (req: T) => T;
+  private writeSeq = long.fromNumber(0);
+  private readSeq = long.fromNumber(0);
 
   constructor(grpcStream: ClientDuplexStream<T, U>, reqFactory: { create (): T }, setReqOptionsFn: (req: T) => T) {
     super({
@@ -66,17 +65,17 @@ export class DaprChunkedStream<T extends MessageWithPayload, U extends MessageWi
     // Read data from the input stream, in chunks of up to 2KB
     // Send the data until we reach the end of the input stream
     for (let n = 0; n < chunk.length; n += 2 << 10) {
-      const req = this.reqFactory.create();
+      let req = this.reqFactory.create();
 
       // If this is the first chunk, add the options
-      if (this.writeSeq.eq(Long.ZERO)) {
-        this.setReqOptionsFn(req);
+      if (this.writeSeq.isZero()) {
+        req = this.setReqOptionsFn(req);
       }
 
       // Add the payload
       const reqPayload = StreamPayload.create({
         data: chunk.subarray(n, n+ (2 << 10)),
-        seq: this.writeSeq,
+        seq: long.fromString(this.writeSeq.toString()),
       });
       req.payload = reqPayload;
       this.writeSeq = this.writeSeq.add(1);
@@ -95,7 +94,7 @@ export class DaprChunkedStream<T extends MessageWithPayload, U extends MessageWi
   }
 
   private readGrpcStream() {
-    let readSeq = new Long(0);
+    let readSeq = long.fromNumber(0);
 
     this.grpcStream.on("data", (chunk: MessageWithPayload) => {
       const payload = chunk.payload;
@@ -104,7 +103,7 @@ export class DaprChunkedStream<T extends MessageWithPayload, U extends MessageWi
       }
 
       // Check sequence
-      if (payload.seq != readSeq) {
+      if (payload.seq.ne(readSeq)) {
         this.closeWithError(new Error(`Invalid payload sequence: got ${payload.seq} but expected ${readSeq}`));
         return;
       }
