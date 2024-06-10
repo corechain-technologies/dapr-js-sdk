@@ -17,10 +17,10 @@ import GRPCClient from "./GRPCClient";
 import { type DecryptRequest, type EncryptRequest } from "../../../types/crypto/Requests";
 import IClientCrypto from "../../../interfaces/Client/IClientCrypto";
 import {
+  EncryptRequestOptions as pbEncryptRequestOptions,
   EncryptRequest as pbEncryptRequest,
   DecryptRequestOptions as pbDecryptRequestOptions,
   DecryptRequest as pbDecryptRequest,
-  EncryptResponse,
 } from "../../../proto/dapr/proto/runtime/v1/dapr";
 import { DaprChunkedStream } from "../../../utils/Streams.util";
 
@@ -35,22 +35,26 @@ export default class GRPCClientCrypto implements IClientCrypto {
   encrypt(inData: Buffer | ArrayBuffer | ArrayBufferView | string, opts: EncryptRequest): Promise<Buffer>;
   async encrypt(
     arg0: Buffer | ArrayBuffer | ArrayBufferView | string | EncryptRequest,
-    opts?: EncryptRequest,
+    opts_?: EncryptRequest,
   ): Promise<Duplex | Buffer> {
     // Handle overloading
     // If we have a single argument, assume the user wants to use the Duplex stream-based approach
     let inData: Buffer | undefined;
-    if (opts === undefined) {
+
+    let opts: EncryptRequest;
+    if (opts_ == null) {
       opts = arg0 as EncryptRequest;
     } else {
       // Throws if arg0 is not a supported type
       inData = this.toArrayBuffer(arg0);
+      opts = opts_;
     }
 
     // Ensure required options are present
     if (!opts) {
       throw new Error(`Parameter 'opts' must be defined`);
     }
+
     if (!opts.componentName) {
       throw new Error(`Option 'componentName' is required`);
     }
@@ -66,7 +70,28 @@ export default class GRPCClientCrypto implements IClientCrypto {
     const grpcStream = client.encryptAlpha1();
 
     // Create a duplex stream that will send data to the server and read from it
-    const duplexStream = new DaprChunkedStream<pbEncryptRequest, EncryptResponse>(grpcStream, pbEncryptRequest, (req) => ({ ...req }));
+    const duplexStream = new DaprChunkedStream(grpcStream, pbEncryptRequest, (req) => {
+      const reqOptions = pbEncryptRequestOptions.create();
+
+      reqOptions.componentName = opts.componentName;
+      reqOptions.keyName = opts.keyName;
+      reqOptions.keyWrapAlgorithm = opts.keyWrapAlgorithm;
+
+      if (opts.dataEncryptionCipher) {
+        reqOptions.dataEncryptionCipher = opts.dataEncryptionCipher;
+      }
+
+      if (opts.decryptionKeyName) {
+        reqOptions.decryptionKeyName = opts.decryptionKeyName;
+      }
+
+      if (opts.omitDecryptionKeyName) {
+        reqOptions.omitDecryptionKeyName = opts.omitDecryptionKeyName;
+      }
+
+      req.options = reqOptions;
+      /* eslint-enable @typescript-eslint/no-non-null-assertion */
+    });
 
     // Process the data
     return this.processStream(duplexStream, inData);
@@ -76,16 +101,19 @@ export default class GRPCClientCrypto implements IClientCrypto {
   decrypt(inData: Buffer | ArrayBuffer | ArrayBufferView, opts: DecryptRequest): Promise<Buffer>;
   async decrypt(
     arg0: Buffer | ArrayBuffer | ArrayBufferView | DecryptRequest,
-    opts?: DecryptRequest,
+    opts_?: DecryptRequest,
   ): Promise<Duplex | Buffer> {
     // Handle overloading
     // If we have a single argument, assume the user wants to use the Duplex stream-based approach
     let inData: Buffer | undefined;
-    if (opts === undefined) {
+
+    let opts: DecryptRequest;
+    if (opts_ == null) {
       opts = arg0 as EncryptRequest;
     } else {
       // Throws if arg0 is not a supported type
       inData = this.toArrayBuffer(arg0);
+      opts = opts_;
     }
 
     // Ensure required options are present
@@ -98,13 +126,18 @@ export default class GRPCClientCrypto implements IClientCrypto {
     const grpcStream = client.decryptAlpha1();
 
     // Create a duplex stream that will send data to the server and read from it
-    const duplexStream = new DaprChunkedStream(grpcStream, pbDecryptRequest, (req) => ({
-      ...req,
-      options: pbDecryptRequestOptions.create({
-        componentName: opts?.componentName,
-        keyName: opts?.keyName,
-      }),
-    }));
+    const duplexStream = new DaprChunkedStream(grpcStream, pbDecryptRequest, (req) => {
+      const reqOptions = pbDecryptRequestOptions.create();
+      if (opts.componentName != null) {
+        reqOptions.componentName = opts.componentName;
+      }
+
+      if (opts.keyName) {
+        reqOptions.keyName = opts?.keyName;
+      }
+
+      req.options = reqOptions;
+    });
 
     // Process the data
     return this.processStream(duplexStream, inData);
@@ -126,7 +159,7 @@ export default class GRPCClientCrypto implements IClientCrypto {
     }
   }
 
-  private processStream(duplexStream: DaprChunkedStream<any, any>, inData?: Buffer): Promise<Duplex | Buffer> {
+  private processStream(duplexStream: DaprChunkedStream<any>, inData?: Buffer): Promise<Duplex | Buffer> {
     // If the caller did not pass data (as a Buffer etc), return the duplex stream and stop here
     if (!inData) {
       return Promise.resolve(duplexStream);

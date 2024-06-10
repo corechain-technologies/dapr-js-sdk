@@ -19,7 +19,7 @@ export default class DemoActorReminderOnceImpl extends AbstractActor implements 
 
   async init(): Promise<string> {
     await super.registerActorReminder(
-      "my-reminder-name",
+      this.constructor.name,
       Temporal.Duration.from({ milliseconds: 1500 }),
       undefined,
       undefined,
@@ -38,7 +38,7 @@ export default class DemoActorReminderOnceImpl extends AbstractActor implements 
   }
 
   async removeReminder(): Promise<void> {
-    return this.unregisterActorReminder("my-reminder-name");
+    return this.unregisterActorReminder(this.constructor.name);
   }
 
   /**

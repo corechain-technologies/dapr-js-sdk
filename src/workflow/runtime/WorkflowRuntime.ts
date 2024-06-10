@@ -25,7 +25,7 @@ import { WorkflowClientOptions } from "../../types/workflow/WorkflowClientOption
  * Contains methods to register workflows and activities.
  */
 export default class WorkflowRuntime {
-  private worker: TaskHubGrpcWorker;
+  protected worker: TaskHubGrpcWorker;
 
   /**
    * Initializes a new instance of the WorkflowRuntime.

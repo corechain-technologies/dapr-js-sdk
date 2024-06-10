@@ -16,10 +16,11 @@ import DemoActorReminderInterface from "./DemoActorReminderInterface";
 
 export default class DemoActorReminderTtlImpl extends AbstractActor implements DemoActorReminderInterface {
   counter = 0;
+  name = "DemoActorReminderTtlImpl";
 
   async init(): Promise<string> {
     await super.registerActorReminder(
-      "my-reminder-name",
+      this.name,
       Temporal.Duration.from({ milliseconds: 1500 }), //dueTime
       Temporal.Duration.from({ seconds: 1 }), //period
       Temporal.Duration.from({ seconds: 1 }), //ttl
@@ -37,7 +38,7 @@ export default class DemoActorReminderTtlImpl extends AbstractActor implements D
   }
 
   async removeReminder(): Promise<void> {
-    return this.unregisterActorReminder("my-reminder-name");
+    return this.unregisterActorReminder(this.name);
   }
 
   /**

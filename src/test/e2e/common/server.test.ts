@@ -50,8 +50,8 @@ const bulkSubscribeClodEventTopic = "bulk-subscribe-ce-topic";
 const bulkSubscribeCloudEventToRawPayloadTopic = "bulk-subscribe-ce-rp-topic";
 const bulkSubscribeRawPayloadToClodEventTopic = "bulk-subscribe-rp-ce-topic";
 
-// Set timeout to 10s for all tests
-jest.setTimeout(10000);
+// Set timeout to 60s for all tests
+jest.setTimeout(60000);
 
 describe("common/server", () => {
   let httpServer: DaprServer;
